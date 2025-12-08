@@ -1,0 +1,121 @@
+import { Suspense, lazy } from 'react';
+import { Outlet, RouteObject, createBrowserRouter } from 'react-router-dom';
+
+import paths, { rootPaths } from './paths';
+import PrivateRoutes from './PrivateRoutes';
+
+import PageLoader from '../components/loading/PageLoader';
+import Splash from 'components/loading/Splash';
+
+const App = lazy(() => import('App'));
+const MainLayout = lazy(async () => {
+  return Promise.all([
+    import('layouts/main-layout'),
+    new Promise((resolve) => setTimeout(resolve, 1000)),
+  ]).then(([moduleExports]) => moduleExports);
+});
+const AuthLayout = lazy(async () => {
+  return Promise.all([
+    import('layouts/auth-layout'),
+    new Promise((resolve) => setTimeout(resolve, 1000)),
+  ]).then(([moduleExports]) => moduleExports);
+});
+
+const Error404 = lazy(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  return import('pages/errors/Error404');
+});
+
+const Sales = lazy(async () => {
+  return Promise.all([
+    import('pages/home/Sales'),
+    new Promise((resolve) => setTimeout(resolve, 500)),
+  ]).then(([moduleExports]) => moduleExports);
+});
+
+const Login = lazy(async () => import('pages/authentication/Login'));
+
+const ResetPassword = lazy(async () => import('pages/authentication/ResetPassword'));
+const ForgotPassword = lazy(async () => import('pages/authentication/ForgotPassword'));
+
+const PortfolioList = lazy(async () => import('pages/portfolio/PortfolioList'));
+const PortfolioForm = lazy(async () => import('pages/portfolio/PortfolioForm'));
+const HeroBannerPage = lazy(async () => import('pages/hero-banner/HeroBannerPage'));
+
+const routes: RouteObject[] = [
+  {
+    element: (
+      <Suspense fallback={<Splash />}>
+        <App />
+      </Suspense>
+    ),
+    children: [
+      {
+        path: rootPaths.homeRoot,
+        element: <PrivateRoutes />,
+        children: [
+          {
+            element: (
+              <MainLayout>
+                <Suspense fallback={<PageLoader />}>
+                  <Outlet />
+                </Suspense>
+              </MainLayout>
+            ),
+            children: [
+              {
+                path: paths.home,
+                element: <Sales />,
+              },
+              {
+                path: paths.portfolio,
+                element: <PortfolioList />,
+              },
+              {
+                path: paths.portfolioAdd,
+                element: <PortfolioForm />,
+              },
+              {
+                path: paths.heroBanner,
+                element: <HeroBannerPage />,
+              },
+            ],
+          },
+        ],
+      },
+      {
+        path: rootPaths.authRoot,
+        element: (
+          <AuthLayout>
+            <Suspense fallback={<PageLoader />}>
+              <Outlet />
+            </Suspense>
+          </AuthLayout>
+        ),
+        children: [
+          {
+            path: paths.login,
+            element: <Login />,
+          },
+
+          {
+            path: paths.resetPassword,
+            element: <ResetPassword />,
+          },
+          {
+            path: paths.forgotPassword,
+            element: <ForgotPassword />,
+          },
+        ],
+      },
+      {
+        path: '*',
+        element: <Error404 />,
+      },
+    ],
+  },
+];
+
+const router = createBrowserRouter(routes);
+
+export default router;

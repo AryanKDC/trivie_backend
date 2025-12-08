@@ -1,0 +1,46 @@
+{
+  "hash": "c2d11961",
+  "configHash": "c37308bc",
+  "lockfileHash": "0c0c6166",
+  "browserHash": "ea5479d9",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "37e9ec56",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "708ba8b1",
+      "needsInterop": true
+    },
+    "react-router-dom": {
+      "src": "../../node_modules/react-router-dom/dist/index.js",
+      "file": "react-router-dom.js",
+      "fileHash": "148c6db2",
+      "needsInterop": false
+    },
+    "react-helmet-async": {
+      "src": "../../node_modules/react-helmet-async/lib/index.esm.js",
+      "file": "react-helmet-async.js",
+      "fileHash": "255befd4",
+      "needsInterop": false
+    },
+    "@mui/material": {
+      "src": "../../node_modules/@mui/material/index.js",
+      "file": "@mui_material.js",
+      "fileHash": "4791323c",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-GNGHEUO2": {
+      "file": "chunk-GNGHEUO2.js"
+    },
+    "chunk-QZFQQN7Q": {
+      "file": "chunk-QZFQQN7Q.js"
+    }
+  }
+}
