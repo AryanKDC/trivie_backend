@@ -9,90 +9,39 @@ export const addPortfolio = catchAsync(async (req, res, next) => {
   console.log("Files:", req.files);
 
   const {
-    page,
-    title,
-    description,
-    tags,
-    title_one,
-    description_one,
-    title_two,
-    description_two,
-    title_three,
-    description_three,
+    projectTitle,
+    category,
+    challenge,
+    solution,
+    result
   } = req.body;
 
-  console.log("Extracted fields:", {
-    title_one,
-    description_one,
-    title_two,
-    description_two,
-    title_three,
-    description_three,
-  });
+  // Extract thumbnail
+  const thumbnail = req.files.thumbnail_image?.[0]?.path;
 
-  const files = req.files;
+  // Extract gallery images
+  const galleryImages = req.files.images_gallery?.map(f => f.path) || [];
 
-  if (!files || files.length === 0) {
-    console.log("No files uploaded");
+  if (!thumbnail || galleryImages.length === 0) {
     return res.status(400).json({
       status: false,
-      message: "Please upload at least one image",
+      message: "Please upload thumbnail and at least one gallery image",
     });
   }
 
-  const images = files.map((file) => file.path);
-
-  // Robust tag parsing
-  let processedTags = [];
-  if (tags) {
-    if (Array.isArray(tags)) {
-      processedTags = tags;
-    } else if (typeof tags === "string") {
-      try {
-        // Try parsing as JSON (e.g., "['tag1', 'tag2']")
-        const parsed = JSON.parse(tags);
-        if (Array.isArray(parsed)) {
-          processedTags = parsed;
-        } else {
-          // If JSON but not array, or just a string, split by comma
-          processedTags = tags
-            .split(",")
-            .map((t) => t.trim())
-            .filter((t) => t);
-        }
-      } catch (e) {
-        // Not JSON, treat as comma-separated string
-        processedTags = tags
-          .split(",")
-          .map((t) => t.trim())
-          .filter((t) => t);
-      }
-    }
-  } else if (req.body["tags[]"]) {
-    // Fallback for some frontend frameworks sending tags[]
-    const tagsAlt = req.body["tags[]"];
-    if (Array.isArray(tagsAlt)) {
-      processedTags = tagsAlt;
-    } else if (typeof tagsAlt === "string") {
-      processedTags = [tagsAlt];
-    }
-  }
+  // Category is simple string based on your form: "Residential"
+  const processedCategory = category || null;
 
   try {
     const portfolio = await Portfolio.create({
-      page,
-      title,
-      description,
-      images,
-      tags: processedTags,
-      title_one,
-      description_one,
-      title_two,
-      description_two,
-      title_three,
-      description_three,
+      title: projectTitle,
+      category: processedCategory,
+      thumbnail_image: thumbnail,
+      images: galleryImages,
+      the_challenge: challenge,
+      our_solution: solution,
+      the_result: result,
     });
-    console.log("Portfolio created:", portfolio);
 
     res.status(201).json({
       status: true,

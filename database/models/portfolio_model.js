@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 
 const portfolioSchema = new mongoose.Schema(
   {
-    page: {
-      type: String,
-      required: true,
-    },
+    // page: {
+    //   type: String,
+    //   required: true,
+    // },
     title: {
       type: String,
       required: true,
@@ -14,37 +14,30 @@ const portfolioSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
-    images: {
-      type: [String], // Array of strings to store image URLs or paths
+    image_gallery: {
+      type: [String], // upload gallery
       required: true,
     },
-    tags: {
+    thumbnail_image: {
+      type: String,
+      required: true,
+    },
+    category: {
       type: [String],
       default: [],
+      required: true,
     },
-    title_one: {
+    the_challenge: {
       type: String,
       required: true,
     },
-    description_one: {
+    our_solution: {
       type: String,
       required: false,
     },
-    title_two: {
+    the_result: {
       type: String,
       required: true,
-    },
-    description_two: {
-      type: String,
-      required: false,
-    },
-    title_three: {
-      type: String,
-      required: false,
-    },
-    description_three: {
-      type: String,
-      required: false,
     },
   },
   { timestamps: true }
