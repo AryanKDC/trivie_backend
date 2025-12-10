@@ -32,7 +32,7 @@ export const SignIn = catchAsync(async (req, res, next) => {
     return res.status(401).json({
       result: [],
       status: false,
-      message: "User not found with this User Name.",
+      message: "User does not exist.",
     });
   }
   if (user.status === false) {
@@ -48,7 +48,7 @@ export const SignIn = catchAsync(async (req, res, next) => {
   if (!passwordMatch) {
     return res
       .status(401)
-      .json({ result: [], status: false, message: "PasswordInValid" });
+      .json({ result: [], status: false, message: "Incorrect Password" });
   }
 
   const token = user.jwtToken();
