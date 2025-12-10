@@ -37,7 +37,7 @@ export const addPortfolio = catchAsync(async (req, res, next) => {
       title: projectTitle,
       category: processedCategory,
       thumbnail_image: thumbnail,
-      images: galleryImages,
+      image_gallery: galleryImages,
       the_challenge: challenge,
       our_solution: solution,
       the_result: result,
