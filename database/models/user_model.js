@@ -17,8 +17,15 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     role_id: {
-      type: String, // Placeholder for role reference
+      type: String, // Placeholder for role reference 
       default: "user",
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    phone: {
+      type: String,
     },
     status: {
       type: Boolean,
