@@ -13,7 +13,7 @@ router.post(
   "/add-portfolio",
   upload.fields([
     { name: "thumbnail_image", maxCount: 1 },
-    { name: "images_gallery", maxCount: 20 },
+    { name: "images_gallery" },
   ]),
   addPortfolio
 );
