@@ -2,6 +2,7 @@ import catchAsync from "../utils/catchAsync.js";
 import Portfolio from "../database/models/portfolio_model.js";
 import { DynamicSearch } from "../utils/DynamicSearch.js";
 import { dynamic_filter } from "../utils/dynamic_filter.js";
+import Category from "../database/models/category_model.js";
 
 export const addPortfolio = catchAsync(async (req, res, next) => {
   console.log("Received addPortfolio request");
@@ -17,11 +18,16 @@ export const addPortfolio = catchAsync(async (req, res, next) => {
   } = req.body;
 
   // Extract thumbnail
-  const thumbnail = req.files.thumbnail_image?.[0]?.path;
+  let thumbnail = req.files.thumbnail_image?.[0]?.path;
 
   // Extract gallery images
-  const galleryImages = req.files.images_gallery?.map(f => f.path) || [];
+  let galleryImages = req.files.images_gallery?.map(f => f.path) || [];
 
+  if (thumbnail) {
+    thumbnail = thumbnail.replace(/\\/g, "/");
+  }
+
+  galleryImages = galleryImages.map(img => img.replace(/\\/g, "/"));
   if (!thumbnail || galleryImages.length === 0) {
     return res.status(400).json({
       status: false,
@@ -65,10 +71,10 @@ export const getPortfolio = catchAsync(async (req, res, next) => {
 
   // Default search fields if not provided in body
   const {
-    string = ["title", "description", "page"],
+    string = ["projectTitle", "title"],
     boolean = [],
     numbers = [],
-    arrayField = ["tags"],
+    arrayField = ["category"],
   } = req.body.searchFields || {};
 
   const filter = req.body.filter || {};
@@ -86,11 +92,11 @@ export const getPortfolio = catchAsync(async (req, res, next) => {
     delete filter.page;
   }
 
-  // Handle Tags (Partial Match in Array)
-  if (filter.tags && Array.isArray(filter.tags) && filter.tags.length > 0) {
-    const tagRegexes = filter.tags.map((tag) => new RegExp(tag, "i"));
-    customFilters.tags = { $in: tagRegexes };
-    delete filter.tags;
+  // Handle Category (Partial Match in Array)
+  if (filter.category && Array.isArray(filter.category) && filter.category.length > 0) {
+    const categoryRegexes = filter.category.map((category) => new RegExp(category, "i"));
+    customFilters.category = { $in: categoryRegexes };
+    delete filter.category;
   }
 
   let search_query = {};
@@ -117,10 +123,11 @@ export const getPortfolio = catchAsync(async (req, res, next) => {
 
   const match_query = {
     ...filterData,
-    ...search_query,
     ...customFilters,
+    ...(Array.isArray(search_query) && search_query.length > 0
+      ? { $or: search_query }
+      : {}),
   };
-
   console.log("Request Body:", JSON.stringify(req.body, null, 2));
   console.log("Match Query:", JSON.stringify(match_query, null, 2));
 
@@ -202,11 +209,101 @@ export const getFrontendPortfolios = catchAsync(async (req, res, next) => {
   res.status(200).json(portfolios);
 });
 
-export const getAllTags = catchAsync(async (req, res, next) => {
-  const tags = await Portfolio.distinct("tags");
+export const getAllCategories = catchAsync(async (req, res, next) => {
+  const category = await Category.distinct("name");
   res.status(200).json({
     status: true,
-    message: "Tags fetched successfully",
-    data: tags,
+    message: "Categories fetched successfully",
+    data: category,
+  });
+});
+
+export const editPortfolio = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const portfolio = await Portfolio.findById(id);
+
+  if (!portfolio) {
+    return res.status(404).json({
+      status: false,
+      message: "Portfolio item not found",
+    });
+  }
+
+  const {
+    projectTitle,
+    category,
+    challenge,
+    solution,
+    result,
+    title,
+    the_challenge,
+    our_solution,
+    the_result,
+    existing_images
+  } = req.body;
+
+  let thumbnail = req.files?.thumbnail_image?.[0]?.path;
+  let galleryImages = req.files?.images_gallery?.map((f) => f.path) || [];
+
+  const updateData = {};
+
+  if (projectTitle) updateData.title = projectTitle;
+  if (title) updateData.title = title;
+
+  if (category) updateData.category = category;
+
+  if (challenge) updateData.the_challenge = challenge;
+  if (the_challenge) updateData.the_challenge = the_challenge;
+
+  if (solution) updateData.our_solution = solution;
+  if (our_solution) updateData.our_solution = our_solution;
+
+  if (result) updateData.the_result = result;
+  if (the_result) updateData.the_result = the_result;
+
+  if (thumbnail) {
+    updateData.thumbnail_image = thumbnail.replace(/\\/g, "/");
+  }
+
+  if (existing_images !== undefined) {
+    const existingImagesArray = existing_images ? JSON.parse(existing_images) : [];
+    const normalizedExisting = existingImagesArray.map(img =>
+      typeof img === 'string' ? img.replace(/\\/g, "/") : img
+    );
+
+    const normalizedNew = galleryImages.map(img => img.replace(/\\/g, "/"));
+
+    updateData.image_gallery = [...normalizedExisting, ...normalizedNew];
+  } else if (galleryImages.length > 0) {
+    updateData.image_gallery = galleryImages.map(img => img.replace(/\\/g, "/"));
+  }
+
+  const updatedPortfolio = await Portfolio.findByIdAndUpdate(id, updateData, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.status(200).json({
+    status: true,
+    message: "Portfolio item updated successfully",
+    data: updatedPortfolio,
+  });
+});
+
+export const deletePortfolio = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const portfolio = await Portfolio.findByIdAndDelete(id);
+
+  if (!portfolio) {
+    return res.status(404).json({
+      status: false,
+      message: "Portfolio item not found",
+    });
+  }
+
+  res.status(200).json({
+    status: true,
+    message: "Portfolio item deleted successfully",
+    data: portfolio,
   });
 });

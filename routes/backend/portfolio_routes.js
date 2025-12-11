@@ -3,7 +3,9 @@ import {
   addPortfolio,
   getPortfolio,
   getPortfolioById,
-  getAllTags,
+  getAllCategories,
+  editPortfolio,
+  deletePortfolio,
 } from "../../controllers/portfolio_controller.js";
 import upload from "../../utils/upload.js";
 
@@ -18,7 +20,16 @@ router.post(
   addPortfolio
 );
 router.post("/get", getPortfolio);
-router.get("/tags", getAllTags);
+router.get("/categories", getAllCategories);
 router.get("/get/:id", getPortfolioById);
+router.put(
+  "/edit/:id",
+  upload.fields([
+    { name: "thumbnail_image", maxCount: 1 },
+    { name: "images_gallery" },
+  ]),
+  editPortfolio
+);
+router.delete("/delete/:id", deletePortfolio);
 
 export default router;

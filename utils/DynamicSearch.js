@@ -29,9 +29,7 @@ export const DynamicSearch = (
         });
       });
 
-    const searchQuery =
-      dynamicSearchQueries?.length > 0 ? { $or: dynamicSearchQueries } : [];
-    return searchQuery;
+    return dynamicSearchQueries;
   } else {
     return [];
   }
