@@ -273,10 +273,6 @@ export const editPortfolio = catchAsync(async (req, res, next) => {
     const normalizedNew = galleryImages.map(img => img.replace(/\\/g, "/"));
 
     updateData.image_gallery = [...normalizedExisting, ...normalizedNew];
-
-    console.log('📸 Existing images to keep:', existingImagesArray.length);
-    console.log('📸 New images uploaded:', galleryImages.length);
-    console.log('📸 Total gallery images:', updateData.image_gallery.length);
   } else if (galleryImages.length > 0) {
     updateData.image_gallery = galleryImages.map(img => img.replace(/\\/g, "/"));
   }
@@ -292,6 +288,7 @@ export const editPortfolio = catchAsync(async (req, res, next) => {
     data: updatedPortfolio,
   });
 });
+
 export const deletePortfolio = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const portfolio = await Portfolio.findByIdAndDelete(id);
