@@ -2,6 +2,7 @@ import catchAsync from "../utils/catchAsync.js";
 import Portfolio from "../database/models/portfolio_model.js";
 import { DynamicSearch } from "../utils/DynamicSearch.js";
 import { dynamic_filter } from "../utils/dynamic_filter.js";
+import Category from "../database/models/category_model.js";
 
 export const addPortfolio = catchAsync(async (req, res, next) => {
   console.log("Received addPortfolio request");
@@ -208,12 +209,12 @@ export const getFrontendPortfolios = catchAsync(async (req, res, next) => {
   res.status(200).json(portfolios);
 });
 
-export const getAllTags = catchAsync(async (req, res, next) => {
-  const tags = await Portfolio.distinct("tags");
+export const getAllCategories = catchAsync(async (req, res, next) => {
+  const category = await Category.distinct("name");
   res.status(200).json({
     status: true,
-    message: "Tags fetched successfully",
-    data: tags,
+    message: "Categories fetched successfully",
+    data: category,
   });
 });
 
