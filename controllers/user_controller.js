@@ -31,7 +31,6 @@ export const addUser = catchAsync(async (req, res, next) => {
         user_name,
         password: hashedPassword,
         email,
-        email,
         role_id: role_id || "user",
     });
 
