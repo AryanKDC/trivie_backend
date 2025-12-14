@@ -64,21 +64,14 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
     try {
         const { token } = req.params;
-        const { password, confirmPassword } = req.body;
+        const { password } = req.body;
 
-        if (!password || !confirmPassword) {
-            return res.status(400).json({ message: "Password and confirmation are required" });
+        if (!password) {
+            return res.status(400).json({ message: "Password is required" });
         }
 
         // Sanitize password input (trim)
         const sanitizedPassword = password.trim();
-        const sanitizedConfirmPassword = confirmPassword.trim();
-
-        // Check if passwords match
-        if (sanitizedPassword !== sanitizedConfirmPassword) {
-            return res.status(400).json({ message: "Passwords do not match" });
-        }
-
         const hashedToken = crypto
             .createHash("sha256")
             .update(token)
@@ -91,6 +84,12 @@ export const resetPassword = async (req, res) => {
 
         if (!user) {
             return res.status(400).json({ message: "Invalid or expired token" });
+        }
+
+        // Check if new password is same as old password
+        const isSamePassword = await bcrypt.compare(sanitizedPassword, user.password);
+        if (isSamePassword) {
+            return res.status(400).json({ message: "New password cannot be the same as the old password" });
         }
 
         // Invalidate token immediately (single-use token)
