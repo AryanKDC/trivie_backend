@@ -11,10 +11,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
     password: {
       type: String,
       required: true,
+      trim: true,
     },
     role_id: {
       type: String,
@@ -24,6 +26,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
     },
     status: {
       type: Boolean,
