@@ -18,6 +18,7 @@ const getConfigs = () => {
         "https://topl.uat.metaphi.in",
         "http://192.168.1.48:3000",
         "http://192.168.1.57:2000",
+        "https://interior-designer-gray.vercel.app"
       ],
       credentials: true,
     },
