@@ -8,6 +8,7 @@ import {
   deletePortfolio,
 } from "../../controllers/portfolio_controller.js";
 import upload from "../../utils/upload.js";
+import { compressImages } from "../../middlewares/imageCompression.js";
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.post(
     { name: "thumbnail_image", maxCount: 1 },
     { name: "images_gallery" },
   ]),
+  compressImages,
   addPortfolio
 );
 router.post("/get", getPortfolio);
@@ -28,6 +30,7 @@ router.put(
     { name: "thumbnail_image", maxCount: 1 },
     { name: "images_gallery" },
   ]),
+  compressImages,
   editPortfolio
 );
 router.delete("/delete/:id", deletePortfolio);
