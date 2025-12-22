@@ -209,6 +209,34 @@ export const getFrontendPortfolios = catchAsync(async (req, res, next) => {
   res.status(200).json(portfolios);
 });
 
+export const getFrontendPortfoliosByCategory = catchAsync(async (req, res, next) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 6;
+  const skip = (page - 1) * limit;
+  const { category } = req.query;
+
+  const filter = category ? { category: category } : {};
+
+  const total = await Portfolio.countDocuments(filter);
+
+  const portfolios = await Portfolio.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  res.status(200).json({
+    status: true,
+    message: "Portfolios fetched successfully",
+    data: portfolios,
+    pagination: {
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+      limit,
+    },
+  });
+});
+
 export const getAllCategories = catchAsync(async (req, res, next) => {
   const category = await Category.distinct("name");
   res.status(200).json({
