@@ -8,5 +8,4 @@ const router = express.Router();
 
 router.get("/", getFrontendPortfolios);
 router.get("/get/:id", getPortfolioById);
-
 export default router;
