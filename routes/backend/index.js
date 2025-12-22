@@ -5,6 +5,7 @@ import portfolioRoutes from "./portfolio_routes.js";
 import categoryRoutes from "./category_routes.js";
 import userRoutes from "./user_routes.js";
 import passwordRoutes from "./password_routes.js";
+import contactRoutes from "../frontend/contact_routes.js";
 
 const router = express.Router();
 
@@ -13,5 +14,6 @@ router.use("/portfolio", portfolioRoutes);
 router.use("/category", categoryRoutes);
 router.use("/user", userRoutes);
 router.use("/password", passwordRoutes);
+router.use("/contact", contactRoutes);
 
 export default router;
