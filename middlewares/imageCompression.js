@@ -9,48 +9,71 @@ export const compressImages = async (req, res, next) => {
     const uploadDir = 'uploads/';
 
     try {
-        // Ensure uploads directory exists
-        if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-        }
-
         const fileKeys = Object.keys(req.files);
+        const processingPromises = [];
 
         for (const key of fileKeys) {
             const files = req.files[key];
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
+                const originalPath = file.path;
 
-                // Generate new filename
-                const timestamp = Date.now();
-                const originalName = path.parse(file.originalname).name.replace(/[^a-zA-Z0-9]/g, '_');
-                const filename = `${file.fieldname}-${timestamp}-${originalName}.webp`;
-                const filePath = path.join(uploadDir, filename);
+                // If for some reason it's still in memory, handle it (safety fallback)
+                if (!originalPath && file.buffer) {
+                    const tempName = `temp-${Date.now()}-${file.originalname}`;
+                    const tempPath = path.join(uploadDir, tempName);
+                    fs.writeFileSync(tempPath, file.buffer);
+                    file.path = tempPath;
+                }
 
-                // Compress and save to disk
-                await sharp(file.buffer)
-                    .resize({ width: 1920, withoutEnlargement: true })
-                    .webp({ quality: 80 })
-                    .toFile(filePath);
+                if (!file.path) continue;
 
-                // Update req.files object to mimic what multer.diskStorage would produce
-                // This ensures the controllers can continue using 'path' and 'filename'
-                req.files[key][i].path = filePath;
-                req.files[key][i].filename = filename;
-                req.files[key][i].destination = uploadDir;
-                req.files[key][i].mimetype = 'image/webp';
+                // Create a processing task for each image
+                const task = (async (index, fieldKey) => {
+                    const currentFile = req.files[fieldKey][index];
+                    const sourcePath = currentFile.path;
 
-                // Remove buffer to free up memory
-                delete req.files[key][i].buffer;
+                    const timestamp = Date.now();
+                    const originalName = path.parse(currentFile.originalname).name.replace(/[^a-zA-Z0-9]/g, '_');
+                    const filename = `${currentFile.fieldname}-${timestamp}-${originalName}-${index}.webp`;
+                    const outputPath = path.join(uploadDir, filename);
+
+                    // Compress and save as webp
+                    await sharp(sourcePath)
+                        .resize({ width: 1920, withoutEnlargement: true })
+                        .webp({ quality: 80 })
+                        .toFile(outputPath);
+
+                    // Delete the original file uploaded by multer
+                    if (fs.existsSync(sourcePath)) {
+                        fs.unlinkSync(sourcePath);
+                    }
+
+                    // Update req.files object with webp details
+                    req.files[fieldKey][index].path = outputPath.replace(/\\/g, "/");
+                    req.files[fieldKey][index].filename = filename;
+                    req.files[fieldKey][index].mimetype = 'image/webp';
+
+                    // Cleanup buffer if exists
+                    if (req.files[fieldKey][index].buffer) {
+                        delete req.files[fieldKey][index].buffer;
+                    }
+                })(i, key);
+
+                processingPromises.push(task);
             }
         }
+
+        // Process all images in parallel
+        await Promise.all(processingPromises);
+
         next();
     } catch (error) {
-        console.error("Image Compression Error:", error);
+        console.error("Parallel Image Compression Error:", error);
         return res.status(500).json({
             status: false,
-            message: "Image processing failed",
+            message: "Image processing failed during batch upload",
             error: error.message
         });
     }
