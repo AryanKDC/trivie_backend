@@ -3,6 +3,23 @@ import Portfolio from "../database/models/portfolio_model.js";
 import { DynamicSearch } from "../utils/DynamicSearch.js";
 import { dynamic_filter } from "../utils/dynamic_filter.js";
 import Category from "../database/models/category_model.js";
+import fs from "fs";
+import path from "path";
+
+// Helper function to delete file from disk
+const deleteFile = (filePath) => {
+  if (filePath) {
+    const absolutePath = path.resolve(filePath);
+    if (fs.existsSync(absolutePath)) {
+      try {
+        fs.unlinkSync(absolutePath);
+        console.log(`Deleted file: ${absolutePath}`);
+      } catch (err) {
+        console.error(`Error deleting file ${absolutePath}:`, err);
+      }
+    }
+  }
+};
 
 export const addPortfolio = catchAsync(async (req, res, next) => {
   console.log("Received addPortfolio request");
@@ -301,9 +318,24 @@ export const editPortfolio = catchAsync(async (req, res, next) => {
 
     const normalizedNew = galleryImages.map(img => img.replace(/\\/g, "/"));
 
+    // Delete images that were removed
+    const imagesToDelete = portfolio.image_gallery.filter(
+      (img) => !normalizedExisting.includes(img)
+    );
+    imagesToDelete.forEach(deleteFile);
+
     updateData.image_gallery = [...normalizedExisting, ...normalizedNew];
   } else if (galleryImages.length > 0) {
+    // If no existing_images provided but new galleryImages are, 
+    // we assume we are replacing the whole gallery or it's a specific UI behavior.
+    // However, looking at the current code, it just overwrites.
+    // Let's stick to the current logic but delete old ones if we are overwriting.
+    portfolio.image_gallery.forEach(deleteFile);
     updateData.image_gallery = galleryImages.map(img => img.replace(/\\/g, "/"));
+  }
+
+  if (thumbnail && portfolio.thumbnail_image) {
+    deleteFile(portfolio.thumbnail_image);
   }
 
   const updatedPortfolio = await Portfolio.findByIdAndUpdate(id, updateData, {
@@ -327,6 +359,14 @@ export const deletePortfolio = catchAsync(async (req, res, next) => {
       status: false,
       message: "Portfolio item not found",
     });
+  }
+
+  // Delete images from disk
+  if (portfolio.thumbnail_image) {
+    deleteFile(portfolio.thumbnail_image);
+  }
+  if (portfolio.image_gallery && portfolio.image_gallery.length > 0) {
+    portfolio.image_gallery.forEach(deleteFile);
   }
 
   res.status(200).json({
