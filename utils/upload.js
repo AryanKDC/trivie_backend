@@ -33,10 +33,21 @@ function checkFileType(file, cb) {
   }
 }
 
+// const upload = multer({
+//   storage,
+//   limits: {
+//     fileSize: 10 * 1024 * 1024, // 10MB per image
+//     files: 500, // Support larger batches
+//   },
+//   fileFilter: function (req, file, cb) {
+//     checkFileType(file, cb);
+//   },
+// });
+
 const upload = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB per image
+    fileSize: 1024 * 1024 * 1024, // 1GB per image
     files: 500, // Support larger batches
   },
   fileFilter: function (req, file, cb) {
